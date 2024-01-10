@@ -1,3 +1,6 @@
+#include <cxxabi.h>
+
+#include <array>
 #include <charconv>
 #include <cstdlib>
 #include <fstream>
@@ -5,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <regex>
 #include <set>
 #include <string>
 #include <string_view>
@@ -45,6 +49,7 @@ struct Node final {
     std::optional<size_t> file_column;
     std::optional<size_t> static_size;
     std::optional<size_t> dynamic_objects;
+    std::shared_ptr<std::string> label;
     std::optional<std::shared_ptr<std::string>> function;
     std::set<std::shared_ptr<std::string>> adjacents;
 };
@@ -63,6 +68,25 @@ std::string_view get_field(std::string_view const& view,
     }
 
     return view.substr(beg, end - beg);
+}
+
+std::string_view skip_file_prefix(std::string_view view) {
+    auto const pos = view.find(':');
+    return (pos == std::string_view::npos)
+        ? view
+        : view.substr(pos + 1U);
+}
+
+std::string escape_string(std::string_view const view) {
+    std::string escaped{};
+    for (auto const& ch : view) {
+        if (ch == '<' || ch == '>' || ch == '{' || ch == '}' || ch == '|' || ch == ' ')
+        {
+            escaped += '\\';
+        }
+        escaped += ch;
+    }
+    return escaped;
 }
 
 std::vector<std::string_view> split_view(std::string_view const& view,
@@ -129,6 +153,7 @@ int main(int argc, char** argv) {
 
             std::vector<std::string_view> label_parts{
                 split_view(label, keywords::kLabelDelim)};
+
             for (auto const& part : label_parts) {
                 if (part.ends_with(keywords::kBytesTrail)) {
                     std::size_t static_size{};
@@ -143,6 +168,36 @@ int main(int argc, char** argv) {
                     }
                 }
             }
+
+            std::string label_str{"{"};
+            
+            auto mangled_id = skip_file_prefix(*id);
+            label_str += escape_string(mangled_id);
+            label_str += '|';
+
+            int demangle_status{};
+            char* demangled_id =  abi::__cxa_demangle(mangled_id.data(), nullptr, nullptr, &demangle_status);
+            if (demangle_status == 0) {
+                label_str += escape_string(demangled_id);
+                label_str += '|';
+            } else {
+                std::cerr << "Demangling error: " << *id << " " << demangle_status << "\n";
+            }
+            free(demangled_id);
+
+
+            for (auto const& part : label_parts) {
+                label_str += escape_string(part);
+
+                if (part.data() != label_parts.back().data())
+                {
+                    label_str += '|';
+                } else {
+                    label_str += '}';
+                }
+            }
+            adj_list[id].label = *string_cache.emplace(std::make_shared<std::string>(label_str)).first;
+
         } else if (view.starts_with(keywords::kEdge)) {
             std::shared_ptr<std::string> source =
                 *string_cache
@@ -161,45 +216,27 @@ int main(int argc, char** argv) {
     }
 
     outfile << "digraph {\n";
+    outfile << "node [shape=record margin=\"0.5,0.0\"]\n";
 
-    for (auto const& adj : adj_list) {
-        auto const pos = adj.first->find(':');
-        auto node_alias = (pos == std::string::npos)
-                              ? std::string_view{*adj.first}
-                              : std::string_view{*adj.first}.substr(pos + 1U);
-        outfile << '"' << node_alias << "\" [label=\"" << node_alias;
-        if (adj.second.static_size.has_value()) {
-            outfile << " (" << adj.second.static_size.value() << ')';
-        }
-        outfile << "\"]\n";
+    std::set<std::string_view> node_ids{};
+
+    for (auto const& node : adj_list) {
+        outfile << '"' << *node.first << '"' << " [label=\"" << *node.second.label << "\"]\n";
     }
 
     for (auto const& adj : adj_list) {
-        {
-            auto const pos = adj.first->find(':');
-            if (pos == std::string::npos) {
-                outfile << '"' << *adj.first << '"';
-            } else {
-                outfile << '"' << std::string_view{*adj.first}.substr(pos + 1U)
-                        << '"';
-            }
-            outfile << " -> ";
+        if (adj.second.adjacents.empty()) {
+            continue;
         }
+
+        outfile << '"' << *adj.first << '"' << " -> ";
 
         if (adj.second.adjacents.size() > 1U) {
             outfile << "{";
         }
 
         for (auto const& node : adj.second.adjacents) {
-            outfile << ' ';
-
-            auto const pos = node->find(':');
-            if (pos == std::string::npos) {
-                outfile << '"' << *node << '"';
-            } else {
-                outfile << '"' << std::string_view{*node}.substr(pos + 1U)
-                        << '"';
-            }
+            outfile << ' ' << '"' << *node << '"';
         }
 
         if (adj.second.adjacents.size() > 1U) {
