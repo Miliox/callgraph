@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
@@ -12,6 +13,9 @@ using StringView = std::string_view;
 class StringCache final
 {
 public:
+    StringCache();
+    ~StringCache();
+
     String get(StringView const& str);
 
 private:
@@ -24,5 +28,7 @@ private:
     };
 
     std::set<String, StringCacheComparator> m_cache;
+    std::uint64_t m_hits;
+    std::uint64_t m_misses;
 };
 
