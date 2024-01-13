@@ -1,3 +1,4 @@
+#include <iostream>
 #include <queue>
 #include <set>
 #include <sstream>
@@ -5,9 +6,24 @@
 #include "graph.hpp"
 #include "string_cache.hpp"
 
+Graph::Graph() = default;
+
+Graph::~Graph()
+{
+    std::uint64_t edges{};
+    for (auto& adj : m_adj_list) {
+        edges += adj.second.size();
+    }
+
+    std::cerr << "Graph[" << static_cast<void*>(this) <<  "]: "
+              << m_adj_list.size() << " nodes with "
+              << edges << " edges.\n";
+}
+
 void Graph::addEdge(String const& src, String const& dst)
 {
     m_adj_list[src].emplace(dst);
+    static_cast<void>(m_adj_list[dst]);
 }
 
 void Graph::setNodeLabel(String const& node, String const& label)
@@ -18,7 +34,8 @@ void Graph::setNodeLabel(String const& node, String const& label)
 void Graph::dump(std::ostream& out)
 {
     out << "digraph {\n";
-    out << "node [shape=record]\n";
+    out << "rankdir=\"LR\"\n";
+    out << "node [shape=Mrecord]\n";
 
     for (auto const& adj : m_adj_list) {
         if (adj.second.empty()) {
@@ -87,7 +104,8 @@ void Graph::dump(std::ostream& out, String const& root)
     }
 
     out << "digraph {\n";
-    out << "node [shape=record]\n";
+    out << "rankdir=\"LR\"\n";
+    out << "node [shape=Mrecord]\n";
 
     for (auto const& v : visited) {
         auto it = m_node_labels.find(v);

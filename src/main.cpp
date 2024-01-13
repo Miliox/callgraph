@@ -55,16 +55,40 @@ int main(int argc, char** argv)
                 graph.addEdge(src, dst);
             } else if (isNodeLine(view)) {
                 auto const node = getTitle(view);
-                std::string c_symbol{getSymbol(node)};
+                auto const label = getLabel(view);
+                auto const line_break_pos = label.find("\\n");
+                auto const first_label =
+                    (line_break_pos != StringView::npos) ? label.substr(0U, line_break_pos) : label;
 
-                int status{};
-                char* cpp_symbol =  abi::__cxa_demangle(c_symbol.data(), nullptr, nullptr, &status);
+                if (!first_label.starts_with(")") &&
+                    !first_label.starts_with("cpp)") &&
+                    (first_label.find("/") == StringView::npos)) {
 
-                if (status == 0) {
-                    graph.setNodeLabel(cache.get(node), formatLabel(cache, cpp_symbol));
+                    auto const tpl_pos = first_label.find(" [with");
+                    if (tpl_pos == StringView::npos) {
+                        graph.setNodeLabel(cache.get(node), formatLabel(cache, first_label));
+                    } else {
+                        StringView parts[2] = {
+                            first_label.substr(0, tpl_pos),
+                            first_label.substr(tpl_pos + 1U)
+                        };
+                        std::string aux{parts[0]};
+                        aux += "\\n";
+                        aux += parts[1];
+                        graph.setNodeLabel(cache.get(node), formatLabel(cache, aux));
+                    }
+                } else {
+                    std::string c_symbol{getSymbol(node)};
+
+                    int status{};
+                    char* cpp_symbol =  abi::__cxa_demangle(c_symbol.data(), nullptr, nullptr, &status);
+
+                    if (status == 0) {
+                        graph.setNodeLabel(cache.get(node), formatLabel(cache, cpp_symbol));
+                    }
+
+                    free(cpp_symbol);
                 }
-
-                free(cpp_symbol);
             }
         }
     }

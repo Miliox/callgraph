@@ -8,6 +8,10 @@
 class Graph final
 {
 public:
+    Graph();
+
+    ~Graph();
+
     void addEdge(String const& src, String const& dst);
 
     void setNodeLabel(String const& node, String const& label);
@@ -18,5 +22,5 @@ public:
 
 private:
     std::map<String, std::set<String>> m_adj_list{};
-    std::map<String, String> m_node_labels;
+    std::map<String, String> m_node_labels{};
 };

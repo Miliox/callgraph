@@ -5,8 +5,9 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <variant>
 
-using String = std::shared_ptr<std::string>;
+using String = std::shared_ptr<std::string const>;
 
 using StringView = std::string_view;
 
@@ -19,16 +20,29 @@ public:
     String get(StringView const& str);
 
 private:
-    struct StringCacheComparator final
+    using Entry = std::variant<String, StringView>;
+
+    struct Comparator final
     {
-        bool operator()(String const& lhs, String const& rhs) const
+        bool operator()(Entry const& lhs, Entry const& rhs) const
         {
-            return *lhs < *rhs;
+            if (std::holds_alternative<StringView>(lhs)) {
+                if (std::holds_alternative<StringView>(rhs)) {
+                    return std::get<StringView>(lhs) < std::get<StringView>(rhs);
+                } else {
+                    return std::get<StringView>(lhs) < *std::get<String>(rhs);
+                }
+            } else {
+                if (std::holds_alternative<StringView>(rhs)) {
+                    return *std::get<String>(lhs) < std::get<StringView>(rhs);
+                } else {
+                    return *std::get<String>(lhs) < *std::get<String>(rhs);
+                }
+            }
         }
     };
 
-    std::set<String, StringCacheComparator> m_cache;
-    std::uint64_t m_hits;
-    std::uint64_t m_misses;
+    std::set<Entry, Comparator> m_cache{};
+    std::uint64_t m_hits{};
 };
 
