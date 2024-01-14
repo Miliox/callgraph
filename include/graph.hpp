@@ -12,15 +12,15 @@ public:
 
     ~Graph();
 
-    void addEdge(String const& src, String const& dst);
+    void addEdge(StringView const& src, StringView const& dst);
 
-    void setNodeLabel(String const& node, String const& label);
+    void setNodeLabel(StringView const& node, StringView const& label);
 
     void dump(std::ostream& out);
 
-    void dump(std::ostream& out, String const& root);
+    void dump(std::ostream& out, StringView const& root);
 
 private:
-    std::map<String, std::set<String>> m_adj_list{};
-    std::map<String, String> m_node_labels{};
+    std::map<StringView, std::set<StringView>> m_adj_list{};
+    std::map<StringView, StringView> m_node_labels{};
 };

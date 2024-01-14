@@ -16,17 +16,17 @@ Graph::~Graph()
     }
 
     std::cerr << "Graph[" << static_cast<void*>(this) <<  "]: "
-              << m_adj_list.size() << " nodes with "
+              << m_adj_list.size() << " nodes and "
               << edges << " edges.\n";
 }
 
-void Graph::addEdge(String const& src, String const& dst)
+void Graph::addEdge(StringView const& src, StringView const& dst)
 {
     m_adj_list[src].emplace(dst);
     static_cast<void>(m_adj_list[dst]);
 }
 
-void Graph::setNodeLabel(String const& node, String const& label)
+void Graph::setNodeLabel(StringView const& node, StringView const& label)
 {
     m_node_labels[node] = label;
 }
@@ -42,14 +42,14 @@ void Graph::dump(std::ostream& out)
             continue;
         }
 
-        out << '"' << *adj.first << '"' << " -> ";
+        out << '"' << adj.first << '"' << " -> ";
 
         if (adj.second.size() > 1U) {
             out << "{";
         }
 
         for (auto const& node : adj.second) {
-            out << ' ' << '"' << *node << '"';
+            out << ' ' << '"' << node << '"';
         }
 
         if (adj.second.size() > 1U) {
@@ -62,16 +62,16 @@ void Graph::dump(std::ostream& out)
     out << "}\n";
 }
 
-void Graph::dump(std::ostream& out, String const& root)
+void Graph::dump(std::ostream& out, StringView const& root)
 {
-    std::set<String> visited{};
+    std::set<StringView> visited{};
 
-    std::queue<String> to_visit{};
+    std::queue<StringView> to_visit{};
     to_visit.push(root);
 
     std::stringstream ss{};
     while (!to_visit.empty()) {
-        String visiting = to_visit.front();
+        StringView visiting = to_visit.front();
         to_visit.pop();
 
         if (visited.find(visiting) != visited.end())
@@ -85,7 +85,7 @@ void Graph::dump(std::ostream& out, String const& root)
             continue;
         }
 
-        ss << '"' << *visiting << '"' << " -> ";
+        ss << '"' << visiting << '"' << " -> ";
 
         if (adjacents.size() > 1U) {
             ss << "{";
@@ -93,7 +93,7 @@ void Graph::dump(std::ostream& out, String const& root)
 
         for (auto const& adj : adjacents) {
             to_visit.push(adj);
-            ss << ' ' << '"' << *adj << '"';
+            ss << ' ' << '"' << adj << '"';
         }
 
         if (adjacents.size() > 1U) {
@@ -110,7 +110,7 @@ void Graph::dump(std::ostream& out, String const& root)
     for (auto const& v : visited) {
         auto it = m_node_labels.find(v);
         if (it != m_node_labels.end()) {
-            out << '"' << *v << "\" [label=\"" << it->second->c_str() << "\"]\n";
+            out << '"' << v << "\" [label=\"" << it->second << "\"]\n";
         }
     }
 

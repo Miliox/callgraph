@@ -14,7 +14,7 @@ static StringView getSymbol(StringView view) {
         : view.substr(pos + 1U);
 }
 
-static String formatLabel(StringCache& cache, StringView const raw) {
+static StringView formatLabel(StringCache& cache, StringView const raw) {
     std::string escaped{};
     for (auto const& c : raw) {
         if (c == '<' || c == '>' ||
