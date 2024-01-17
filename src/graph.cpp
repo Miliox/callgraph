@@ -65,7 +65,7 @@ void Graph::dump(std::ostream& out)
     out << "}\n";
 }
 
-void Graph::dump(std::ostream& out, StringView const& root)
+void Graph::dump(std::ostream& out, StringView const& root, bool const outgoing)
 {
     std::set<StringView> visited{};
 
@@ -83,12 +83,14 @@ void Graph::dump(std::ostream& out, StringView const& root)
         }
         visited.emplace(visiting);
 
-        auto& adjacents = m_adj_list[visiting].outgoing;
+        auto& adjacents = outgoing ? m_adj_list[visiting].outgoing : m_adj_list[visiting].incoming;
         if (adjacents.empty()) {
             continue;
         }
 
-        ss << '"' << visiting << '"' << " -> ";
+        if (outgoing) {
+            ss << '"' << visiting << '"' << " -> ";
+        }
 
         if (adjacents.size() > 1U) {
             ss << "{";
@@ -101,6 +103,10 @@ void Graph::dump(std::ostream& out, StringView const& root)
 
         if (adjacents.size() > 1U) {
             ss << " }";
+        }
+
+        if (not outgoing) {
+            ss << " -> " << '"' << visiting << '"';
         }
 
         ss << '\n';

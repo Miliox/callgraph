@@ -18,7 +18,7 @@ public:
 
     void dump(std::ostream& out);
 
-    void dump(std::ostream& out, StringView const& root);
+    void dump(std::ostream& out, StringView const& root, bool const outgoing);
 
 private:
     struct Vertex final

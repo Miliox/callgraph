@@ -93,7 +93,7 @@ int main(int argc, char** argv)
         }
     }
 
-    graph.dump(std::cout, cache.get({"main"}));
+    graph.dump(std::cout, cache.get({"main"}), true);
 
     return 0;
 }
