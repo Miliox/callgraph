@@ -12,7 +12,7 @@ Graph::~Graph()
 {
     std::uint64_t edges{};
     for (auto& adj : m_adj_list) {
-        edges += adj.second.size();
+        edges += adj.second.outgoing.size();
     }
 
     std::cerr << "Graph[" << static_cast<void*>(this) <<  "]: "
@@ -22,13 +22,14 @@ Graph::~Graph()
 
 void Graph::addEdge(StringView const& src, StringView const& dst)
 {
-    m_adj_list[src].emplace(dst);
-    static_cast<void>(m_adj_list[dst]);
+    m_adj_list[dst].incoming.emplace(src);
+    m_adj_list[src].outgoing.emplace(dst);
 }
 
-void Graph::setNodeLabel(StringView const& node, StringView const& label)
+void Graph::setLabel(StringView const& vertex, StringView const& label)
 {
-    m_node_labels[node] = label;
+    
+    m_adj_list[vertex].label = label;
 }
 
 void Graph::dump(std::ostream& out)
@@ -38,21 +39,23 @@ void Graph::dump(std::ostream& out)
     out << "node [shape=Mrecord]\n";
 
     for (auto const& adj : m_adj_list) {
-        if (adj.second.empty()) {
+        auto& base = adj.first;
+        auto& adjs = adj.second.outgoing;
+        if (adjs.empty()) {
             continue;
         }
 
-        out << '"' << adj.first << '"' << " -> ";
+        out << '"' << base << '"' << " -> ";
 
-        if (adj.second.size() > 1U) {
+        if (adjs.size() > 1U) {
             out << "{";
         }
 
-        for (auto const& node : adj.second) {
-            out << ' ' << '"' << node << '"';
+        for (auto const& a : adjs) {
+            out << ' ' << '"' << a << '"';
         }
 
-        if (adj.second.size() > 1U) {
+        if (adjs.size() > 1U) {
             out << " }";
         }
 
@@ -80,7 +83,7 @@ void Graph::dump(std::ostream& out, StringView const& root)
         }
         visited.emplace(visiting);
 
-        auto& adjacents = m_adj_list[visiting];
+        auto& adjacents = m_adj_list[visiting].outgoing;
         if (adjacents.empty()) {
             continue;
         }
@@ -108,10 +111,8 @@ void Graph::dump(std::ostream& out, StringView const& root)
     out << "node [shape=Mrecord]\n";
 
     for (auto const& v : visited) {
-        auto it = m_node_labels.find(v);
-        if (it != m_node_labels.end()) {
-            out << '"' << v << "\" [label=\"" << it->second << "\"]\n";
-        }
+        auto& vertex = m_adj_list.at(v);
+        out << '"' << v << "\" [label=\"" << vertex.label << "\"]\n";
     }
 
     out << ss.str();

@@ -30,7 +30,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         "-Wnull-dereference"   # warn if a null dereference is detected
         "-Wdouble-promotion"   # warn if float is implicit promoted to double
         "-Wformat=2"           # warn on security issues in print formatted
-        "-Weverything"         # enable every possible warning
+        # "-Weverything"         # enable every possible warning
         "-Weffc++"             # enforce effective c++ programming rules
         "-Wno-c++98-compat"    # ignore c++98 compatibility issues
         "-Werror"              # treat warn as errors

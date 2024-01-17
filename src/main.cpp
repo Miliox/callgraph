@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
                     auto const tpl_pos = first_label.find(" [with");
                     if (tpl_pos == StringView::npos) {
-                        graph.setNodeLabel(cache.get(node), formatLabel(cache, first_label));
+                        graph.setLabel(cache.get(node), formatLabel(cache, first_label));
                     } else {
                         StringView parts[2] = {
                             first_label.substr(0, tpl_pos),
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
                         std::string aux{parts[0]};
                         aux += "\\n";
                         aux += parts[1];
-                        graph.setNodeLabel(cache.get(node), formatLabel(cache, aux));
+                        graph.setLabel(cache.get(node), formatLabel(cache, aux));
                     }
                 } else {
                     std::string c_symbol{getSymbol(node)};
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
                     char* cpp_symbol =  abi::__cxa_demangle(c_symbol.data(), nullptr, nullptr, &status);
 
                     if (status == 0) {
-                        graph.setNodeLabel(cache.get(node), formatLabel(cache, cpp_symbol));
+                        graph.setLabel(cache.get(node), formatLabel(cache, cpp_symbol));
                     }
 
                     free(cpp_symbol);

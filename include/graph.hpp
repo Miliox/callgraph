@@ -14,13 +14,19 @@ public:
 
     void addEdge(StringView const& src, StringView const& dst);
 
-    void setNodeLabel(StringView const& node, StringView const& label);
+    void setLabel(StringView const& node, StringView const& label);
 
     void dump(std::ostream& out);
 
     void dump(std::ostream& out, StringView const& root);
 
 private:
-    std::map<StringView, std::set<StringView>> m_adj_list{};
-    std::map<StringView, StringView> m_node_labels{};
+    struct Vertex final
+    {
+        StringView label{};
+        std::set<StringView> incoming{};
+        std::set<StringView> outgoing{};
+    };
+
+    std::map<StringView, Vertex> m_adj_list{};
 };
