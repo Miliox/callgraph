@@ -39,10 +39,30 @@ int main(int argc, char** argv)
     StringCache cache{};
     Graph graph{};
 
+    StringView anchor{};
+    bool outgoing{true};
+
     for (int i = 1; i < argc; ++i) {
-        std::ifstream infile(argv[i]);
+        StringView argument{argv[i]};
+        if (argument.starts_with("-")) {
+            constexpr StringView kRoot{"--root="};
+            constexpr StringView kLeaf{"--leaf="};
+            if (argument.starts_with(kRoot)) {
+                anchor = argument.substr(kRoot.size());
+                outgoing = true;
+            }
+            else if (argument.starts_with(kLeaf)) {
+                anchor = argument.substr(kLeaf.size());
+                outgoing = false;
+            } else {
+                std::cerr << "error: illegal argument " << argument << '\n';
+                return EXIT_FAILURE;
+            }
+        }
+
+        std::ifstream infile(argument.data());
         if (!infile.is_open()) {
-            std::cerr << "error: cannot open " << argv[i] << '\n';
+            std::cerr << "error: cannot open " << argument << '\n';
             continue;
         }
 
@@ -93,7 +113,12 @@ int main(int argc, char** argv)
         }
     }
 
-    graph.dump(std::cout, cache.get({"main"}), true);
+    if (anchor.data() != nullptr) {
+        graph.dump(std::cout, anchor, outgoing);
+    } else {
+        graph.dump(std::cout);
+    }
+
 
     return 0;
 }
