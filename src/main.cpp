@@ -58,15 +58,30 @@ int main(int argc, char** argv) {
       continue;
     }
 
+    std::string private_node_prefix{};
+
     for (std::string line; std::getline(infile, line);) {
       StringView const view{line};
 
       if (isEdgeLine(view)) {
-        auto const src = cache.get(getSource(view));
-        auto const dst = cache.get(getTarget(view));
+        auto src = getSource(view);
+        auto dst = getTarget(view);
+
+        if (src.starts_with(private_node_prefix) ||
+            dst.starts_with(private_node_prefix)) {
+          continue;
+        }
+
+        src = cache.get(src);
+        dst = cache.get(dst);
         graph.addEdge(src, dst);
       } else if (isNodeLine(view)) {
         auto const node = getTitle(view);
+
+        if (node.starts_with(private_node_prefix)) {
+          continue;
+        }
+
         auto const label = getLabel(view);
         auto const line_break_pos = label.find("\\n");
         auto const first_label = (line_break_pos != StringView::npos)
@@ -99,6 +114,9 @@ int main(int argc, char** argv) {
 
           free(cpp_symbol);
         }
+      } else if (isGraphLine(view)) {
+        private_node_prefix = getTitle(view);
+        private_node_prefix += ':';
       }
     }
   }

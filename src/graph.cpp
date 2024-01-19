@@ -35,6 +35,13 @@ void Graph::dump(std::ostream& out) {
   out << "node [shape=Mrecord]\n";
 
   for (auto const& adj : m_adj_list) {
+    if (!adj.second.incoming.empty() ||
+        !adj.second.outgoing.empty()) {
+      out << '"' << adj.first << "\" [label=\"" << adj.second.label << "\"]\n";
+    }
+  }
+
+  for (auto const& adj : m_adj_list) {
     auto& base = adj.first;
     auto& adjs = adj.second.outgoing;
     if (adjs.empty()) {
