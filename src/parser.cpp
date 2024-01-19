@@ -33,53 +33,46 @@ constexpr StringView kBytesTrail{" bytes (static)"};
 namespace {
 
 StringView getField(StringView const& view, StringView const& field) {
-    auto beg = view.find(field);
-    if (beg == StringView::npos) {
-        return {};
-    }
-    beg += field.size();
+  auto beg = view.find(field);
+  if (beg == StringView::npos) {
+    return {};
+  }
+  beg += field.size();
 
-    auto end = view.find(keywords::kCloseStr, beg);
-    if (end == StringView::npos) {
-        return {};
-    }
+  auto end = view.find(keywords::kCloseStr, beg);
+  if (end == StringView::npos) {
+    return {};
+  }
 
-    return view.substr(beg, end - beg);
+  return view.substr(beg, end - beg);
 }
 
+}  // namespace
+
+bool isEdgeLine(StringView const& line) {
+  return line.starts_with(keywords::kEdge);
 }
 
-bool isEdgeLine(StringView const& line)
-{
-    return line.starts_with(keywords::kEdge);
+bool isNodeLine(StringView const& line) {
+  return line.starts_with(keywords::kNode);
 }
 
-bool isNodeLine(StringView const& line)
-{
-    return line.starts_with(keywords::kNode);
+bool isGraphLine(StringView const& line) {
+  return line.starts_with(keywords::kGraph);
 }
 
-bool isGraphLine(StringView const& line)
-{
-    return line.starts_with(keywords::kGraph);
+StringView getLabel(StringView const& line) {
+  return getField(line, keywords::kLabel);
 }
 
-StringView getLabel(StringView const& line)
-{
-    return getField(line, keywords::kLabel);
+StringView getSource(StringView const& line) {
+  return getField(line, keywords::kSourceName);
 }
 
-StringView getSource(StringView const& line)
-{
-    return getField(line, keywords::kSourceName);
+StringView getTarget(StringView const& line) {
+  return getField(line, keywords::kTargetName);
 }
 
-StringView getTarget(StringView const& line)
-{
-    return getField(line, keywords::kTargetName);
-}
-
-StringView getTitle(StringView const& line)
-{
-    return getField(line, keywords::kTitle);
+StringView getTitle(StringView const& line) {
+  return getField(line, keywords::kTitle);
 }

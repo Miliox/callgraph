@@ -9,23 +9,21 @@
 
 using StringView = std::string_view;
 
-class StringCache final
-{
-public:
-    StringCache();
-    ~StringCache();
+class StringCache final {
+ public:
+  StringCache();
+  ~StringCache();
 
-    StringCache(const StringCache&) = delete;
-    StringCache& operator=(const StringCache&) = delete;
+  StringCache(const StringCache&) = delete;
+  StringCache& operator=(const StringCache&) = delete;
 
-    StringView get(StringView const& str);
+  StringView get(StringView const& str);
 
-private:
-    std::set<StringView> m_cache{};
-    std::uint64_t m_hits{};
+ private:
+  std::set<StringView> m_cache{};
+  std::uint64_t m_hits{};
 
-    char* const m_arena_begin;
-    char* const m_arena_end;
-    char* m_arena_cursor;
+  char* const m_arena_begin;
+  char* const m_arena_end;
+  char* m_arena_cursor;
 };
-
