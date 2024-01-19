@@ -5,7 +5,7 @@
 #include <set>
 #include <string>
 #include <string_view>
-#include <variant>
+#include <vector>
 
 using StringView = std::string_view;
 
@@ -23,7 +23,9 @@ class StringCache final {
   std::set<StringView> m_cache{};
   std::uint64_t m_hits{};
 
-  char* const m_arena_begin;
-  char* const m_arena_end;
+  char* m_arena_begin;
+  char* m_arena_end;
   char* m_arena_cursor;
+
+  std::vector<char*> m_used_arenas{};
 };
