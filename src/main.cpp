@@ -34,22 +34,37 @@ int main(int argc, char** argv) {
 
   StringView anchor{};
   bool outgoing{true};
+  bool show_translation_unit_locals{false}; // show translation unit local entities
 
   for (int i = 1; i < argc; ++i) {
     StringView argument{argv[i]};
     if (argument.starts_with("-")) {
       constexpr StringView kRoot{"--root="};
       constexpr StringView kLeaf{"--leaf="};
+
+      constexpr StringView kShowTranslationUnitLocalsShort{"-l"};
+      constexpr StringView kShowTranslationUnitLocalsLong{"--show-translation-unit-local-entities"};
+
       if (argument.starts_with(kRoot)) {
         anchor = argument.substr(kRoot.size());
         outgoing = true;
       } else if (argument.starts_with(kLeaf)) {
         anchor = argument.substr(kLeaf.size());
         outgoing = false;
+      } else if (argument == kShowTranslationUnitLocalsShort ||
+                 argument == kShowTranslationUnitLocalsLong) {
+        show_translation_unit_locals = true;
       } else {
         std::cerr << "error: illegal argument " << argument << '\n';
         return EXIT_FAILURE;
       }
+    }
+  }
+
+  for (int i = 1; i < argc; ++i) {
+    StringView argument{argv[i]};
+    if (argument.starts_with("-")) {
+      continue;
     }
 
     std::ifstream infile(argument.data());
@@ -58,7 +73,7 @@ int main(int argc, char** argv) {
       continue;
     }
 
-    std::string private_node_prefix{};
+    std::string translation_unit_local_prefix{};
 
     for (std::string line; std::getline(infile, line);) {
       StringView const view{line};
@@ -67,9 +82,11 @@ int main(int argc, char** argv) {
         auto src = getSource(view);
         auto dst = getTarget(view);
 
-        if (src.starts_with(private_node_prefix) ||
-            dst.starts_with(private_node_prefix)) {
-          continue;
+        if (!show_translation_unit_locals) {
+          if (src.starts_with(translation_unit_local_prefix) ||
+              dst.starts_with(translation_unit_local_prefix)) {
+            continue;
+          }
         }
 
         src = cache.get(src);
@@ -78,7 +95,8 @@ int main(int argc, char** argv) {
       } else if (isNodeLine(view)) {
         auto const node = getTitle(view);
 
-        if (node.starts_with(private_node_prefix)) {
+        if (!show_translation_unit_locals &&
+            node.starts_with(translation_unit_local_prefix)) {
           continue;
         }
 
@@ -115,8 +133,8 @@ int main(int argc, char** argv) {
           free(cpp_symbol);
         }
       } else if (isGraphLine(view)) {
-        private_node_prefix = getTitle(view);
-        private_node_prefix += ':';
+        translation_unit_local_prefix = getTitle(view);
+        translation_unit_local_prefix += ':';
       }
     }
   }
