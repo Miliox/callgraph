@@ -1,5 +1,6 @@
 #include "graph.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <queue>
 #include <set>
@@ -119,9 +120,19 @@ void Graph::dump(std::ostream& out, StringView const& root,
   out << "rankdir=\"LR\"\n";
   out << "node [shape=Mrecord]\n";
 
-  for (auto const& v : visited) {
-    auto& vertex = m_adj_list.at(v);
-    out << '"' << v << "\" [label=\"" << vertex.label << "\"]\n";
+  std::vector<std::pair<StringView, StringView>> id_label_pairs{};
+  for (auto const& id : visited) {
+    StringView const label = m_adj_list.at(id).label;
+    id_label_pairs.emplace_back(id, label);
+  }
+  std::sort(id_label_pairs.begin(), id_label_pairs.end(),
+            [](std::pair<StringView, StringView> const& lhs,
+               std::pair<StringView, StringView> const& rhs) -> bool {
+              return lhs.second > rhs.second;
+            });
+
+  for (auto const& id_label_pair : id_label_pairs) {
+    out << '"' << id_label_pair.first << "\" [label=\"" << id_label_pair.second << "\"]\n";
   }
 
   out << ss.str();
