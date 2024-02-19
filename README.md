@@ -59,4 +59,4 @@ Be aware that the larger the graph the longer it takes to convert.
 
 ## Example
 
-[Callgraph of callgraph](callgraph.png)
+![Callgraph of callgraph](callgraph.png)
