@@ -50,6 +50,12 @@ To reduce in the other direction, the nodes ending on "\_\_indirect\_call" use -
 ./callgraph --leaf=__indirect_call projects/example/main.ci > example_indcall.dot
 ```
 
+By default translation unit locals like template function instantiation are
+omitted because they greatly increase the number of nodes in the callgraph
+and since the node names are so long it makes harder to read it.
+
+To enable it use `-l` or `--show-translation-unit-local-entities` argument.
+
 At the end, convert to one of the formats supported by dot:
 ```bash
 dot -Tsvg input.dot > output.svg
@@ -60,3 +66,6 @@ Be aware that the larger the graph the longer it takes to convert.
 ## Example
 
 ![Callgraph of callgraph](callgraph.png)
+
+There are 68 nodes and 59 edges in the picture above, if `-l` was used it would
+increase to 689 nodes and 1284 edges which are too many to fit in a small picture.
